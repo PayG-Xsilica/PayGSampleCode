@@ -1,5 +1,5 @@
 <?php 
-$payg_url = "https://uat.pay-g.in/ProcessPayment/EcomPayment/ProcessPayment";
+$payg_url = "https://uat.payg.in/ProcessPayment/EcomPayment/ProcessPayment";
 $SecureHashKey='1e612caab7194578bdb821d72ae7512e';
 $MerchantKeyId = $_POST['MerchantKeyId']; 
 $post = $_POST;
