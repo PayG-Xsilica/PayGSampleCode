@@ -212,7 +212,7 @@ if (!function_exists('woocommerce_payg_init')) {
                 $post['MerchantAuthenticationKey']=$this->authentication_key;
                 $post['MerchantAuthenticationToken']=$this->authentication_token;
                 $header_key = $post['MerchantAuthenticationKey'].":".$post['MerchantAuthenticationToken'].":M:".$post['Merchantkeyid'];
-                $response_data=$this->postApi($header_key,$post_array,"https://uatapi.payg.in/payment/api/order/Detail");
+                $response_data=$this->postApi($header_key,$post_array,"https://paygapi.payg.in/payment/api/order/Detail");
                 add_post_meta( $order_id, '_payg_order_response', $response_data, true );
                 $payg_order_response=json_decode($response_data,true);
 
@@ -404,7 +404,7 @@ if (!function_exists('woocommerce_payg_init')) {
                 $integrationData['PlatformId']=""; 
                 $post['ShipmentData']=$shipment_details;//json_encode($shipment_details);
                 $post['RequestDateTime']=date("mdY");
-                $response_data=$this->postApi($header_key,$post,"https://uatapi.payg.in/payment/api/order/create");
+                $response_data=$this->postApi($header_key,$post,"https://paygapi.payg.in/payment/api/order/create");
                 add_post_meta( $order_id, '_payg_meta_data', $response_data, true );
                 $order_create_response=json_decode($response_data,true);
                     //    echo "<pre>";print_r($response_data);print_r($order_create_response);exit;
@@ -496,7 +496,7 @@ if (!function_exists('woocommerce_payg_init')) {
                  $post['MerchantAuthenticationKey']=$this->authentication_key;
                  $post['MerchantAuthenticationToken']=$this->authentication_token;
                  $header_key = $post['MerchantAuthenticationKey'].":".$post['MerchantAuthenticationToken'].":M:".$post['Merchantkeyid'];
-                 $response_data=$this->postApi($header_key,$post_array,"https://uatapi.payg.in/payment/api/order/Update");
+                 $response_data=$this->postApi($header_key,$post_array,"https://paygapi.payg.in/payment/api/order/Update");
                  add_post_meta( $order_id, '_payg_order_response', $response_data, true );
                  $payg_order_response=json_decode($response_data,true);
                  if(empty($transaction_id)){
