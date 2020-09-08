@@ -1,6 +1,3 @@
-=== WooCommerce Payment Gateway ===
-Contributors: INDUCO CIAL
-
 
 This payment gateway is provided by https://www.payg.com/. It support all type of payment method
 
