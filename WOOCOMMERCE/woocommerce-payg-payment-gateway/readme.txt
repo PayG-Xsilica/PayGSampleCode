@@ -1,13 +1,6 @@
 === WooCommerce Payment Gateway ===
 Contributors: INDUCO CIAL
-Donate link: paypal.com
-Tags: payment gateway, woocommerce, Payg
-Requires at least: 4.0
-Tested up to: 4.9.4
-Requires atleast PHP: 5.2.4 
-Stable tag: 7.0
-License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+
 
 This payment gateway is provided by https://www.payg.com/. It support all type of payment method
 
