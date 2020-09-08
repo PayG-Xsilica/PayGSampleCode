@@ -56,10 +56,10 @@ if (!function_exists('woocommerce_payg_init')) {
                 global $payg_title; global $payg_lowercase_title; global $payg_img;  
                 // Go wild in here
                 $this->supports           = array(
-                    'products',
-                    'refunds',
-                    'pre-orders'
+                    'products' 
                 );
+                $this->order_create_url="https://paygapi.payg.in/payment/api/Order/Create";
+                $this->order_detail_url="https://paygapi.payg.in/payment/api/Order/Detail";
                 $this->id = $payg_lowercase_title;
                 $this->method_title = __($payg_title, $payg_lowercase_title);
                 $this->icon = WP_PLUGIN_URL . "/" . plugin_basename(dirname(__FILE__)) . '/images/'.$payg_img;
@@ -69,10 +69,10 @@ if (!function_exists('woocommerce_payg_init')) {
                 $this->title = $this->settings['title'];
                 $this->description = $this->settings['description'];
                 $this->merchant_id = $this->settings['merchant_id'];
-                $this->secure_key = $this->settings['secure_key'];
+                //$this->secure_key = $this->settings['secure_key'];
                 $this->authentication_key = $this->settings['authentication_key']; 
                 $this->authentication_token= $this->settings['authentication_token']; 
-                $this->url = $this->settings['url'];
+                //$this->url = $this->settings['url'];
                  
                 if (isset($this->settings['redirect_page_id'])) {
                     $this->redirect_page_id = $this->settings['redirect_page_id'];
@@ -112,16 +112,11 @@ if (!function_exists('woocommerce_payg_init')) {
                         'title' => __('Description:', $payg_lowercase_title),
                         'type' => 'textarea',
                         'description' => __('This controls the description which the user sees during checkout.', $payg_lowercase_title),
-                        'default' => __('Pay securely by Credit or Debit card or net banking through '. $payg_title.' Secure Servers.', $payg_lowercase_title)),
+                        'default' => __('Pay securely by Credit or Debit card or net banking  or UPI or Wallets - Paytm ,PhonePey,GooglePay etc  through PayG Secure and PCI Compliance System.')),
                     'merchant_id' => array(
                         'title' => __('Merchant ID', $payg_lowercase_title),
                         'type' => 'text',
                         'description' => __('Merchant ID.', $payg_lowercase_title)
-                    ),
-                    'secure_key' => array(
-                        'title' => __('Merchant Secure Key', $payg_lowercase_title),
-                        'type' => 'text',
-                        'description' => __('Merchant Secure Key.', $payg_lowercase_title)
                     ),
                     'authentication_key' => array(
                         'title' => __('Authentication Key', $payg_lowercase_title),
@@ -133,11 +128,11 @@ if (!function_exists('woocommerce_payg_init')) {
                         'type' => 'text',
                         'description' => __('Authentication Token.', $payg_lowercase_title)
                     ),
-                    'url' => array(
-                        'title' => __('URL', $payg_lowercase_title),
-                        'type' => 'text',
-                        'description' => __('URL.', $payg_lowercase_title)
-                    ),
+                    // 'url' => array(
+                    //     'title' => __('URL', $payg_lowercase_title),
+                    //     'type' => 'text',
+                    //     'description' => __('URL.', $payg_lowercase_title)
+                    // ),
                 );
             }
 
@@ -199,7 +194,8 @@ if (!function_exists('woocommerce_payg_init')) {
                 ini_set("display_errors", 0);
                
               
-                $order_id =  $_GET['order_id']; 
+                $order_id =  $_GET['order_id'];
+                echo $order_id;exit; 
                 $order_data=  wc_get_order( $order_id);
                 $order_meta_data=$order_data->get_meta('_payg_meta_data');
                 $order_meta_data=json_decode($order_meta_data,true);
@@ -212,7 +208,7 @@ if (!function_exists('woocommerce_payg_init')) {
                 $post['MerchantAuthenticationKey']=$this->authentication_key;
                 $post['MerchantAuthenticationToken']=$this->authentication_token;
                 $header_key = $post['MerchantAuthenticationKey'].":".$post['MerchantAuthenticationToken'].":M:".$post['Merchantkeyid'];
-                $response_data=$this->postApi($header_key,$post_array,"https://paygapi.payg.in/payment/api/order/Detail");
+                $response_data=$this->postApi($header_key,$post_array,$this->order_detail_url);
                 add_post_meta( $order_id, '_payg_order_response', $response_data, true );
                 $payg_order_response=json_decode($response_data,true);
 
@@ -312,7 +308,7 @@ if (!function_exists('woocommerce_payg_init')) {
                 $currencycode = get_woocommerce_currency();
                 $merchantTxnId = $order_id;
                 $orderAmount = $order->get_total();
-                $action = $this->url;
+               // $action = $this->url;
                 
                 $return_elements = array();
 
@@ -322,10 +318,12 @@ if (!function_exists('woocommerce_payg_init')) {
                 $payg_args['me_id'] = $this->merchant_id; 
                 $txn_details = array();
                 $payg_args_array = array(); 
+                $uniqid=uniqid(); 
+                $uniqid=substr($uniqid,3);
                 $post['Merchantkeyid']= $this->merchant_id; 
                 $post['MerchantAuthenticationKey']=$this->authentication_key;
                 $post['MerchantAuthenticationToken']=$this->authentication_token;
-                $post['UniqueRequestId']= uniqid();
+                $post['UniqueRequestId']= str_shuffle($uniqid);
                 $post['OrderAmount']=number_format($orderAmount,2); 
                 $post['OrderId']=$order_id;
                 $post['OrderStatus']=$order->get_status();
@@ -336,6 +334,7 @@ if (!function_exists('woocommerce_payg_init')) {
 
                 $post['RedirectUrl']= $redirect_url."&order_id=".$order_id; 
                 $post['OrderId']=$order_id;
+                
                 $post['CustomerEmail']=$order->get_billing_email();
                 $post['TransactionType']="Charge";
              
@@ -404,36 +403,43 @@ if (!function_exists('woocommerce_payg_init')) {
                 $integrationData['PlatformId']=""; 
                 $post['ShipmentData']=$shipment_details;//json_encode($shipment_details);
                 $post['RequestDateTime']=date("mdY");
-                $response_data=$this->postApi($header_key,$post,"https://paygapi.payg.in/payment/api/order/create");
-                add_post_meta( $order_id, '_payg_meta_data', $response_data, true );
+                
+                $response_data=$this->postApi($header_key,$post,$this->order_create_url);
+                add_post_meta( $order_id, '_payg_meta_data', $response_data, true ); 
                 $order_create_response=json_decode($response_data,true);
-                    //    echo "<pre>";print_r($response_data);print_r($order_create_response);exit;
-                    //   header("location:".$order_create_response["PaymentProcessUrl"]);
- 
-                    return '<script type="text/javascript">
-                                        jQuery(function(){
-                                        jQuery("body").block(
-                                            {
-                                                message: "<img src=\"' . $woocommerce->plugin_url() . '/assets/images/ajax-loader.gif\" alt=\"Redirecting\" style=\"float:left; margin-right: 10px;\" />' . 'Thank you for your order. We are now redirecting you to '.$payg_title.' Payment Gateway to make payment.' . '",
-                                                    overlayCSS:
-                                            {
-                                                background: "#fff",
-                                                    opacity: 0.6
-                                        },
-                                        css: {
-                                            padding:        20,
-                                                textAlign:      "center",
-                                                color:          "#555",
-                                                border:         "3px solid #aaa",
-                                                backgroundColor:"#fff",
-                                                cursor:         "wait",
-                                                lineHeight:"32px"
-                                        }
-                                        });
-                                        window.location=\''.$order_create_response["PaymentProcessUrl"].'\';
+                
+             //   header("location:".$order_create_response["PaymentProcessUrl"]);
+ if(isset($order_create_response['ResponseCode'])){
+    
+    wc_add_notice($order_create_response['Message'],'error');
+    wp_redirect(wc_get_checkout_url());
+ }else{
+    return '<script type="text/javascript">
+    jQuery(function(){
+    jQuery("body").block(
+        {
+            message: "<img src=\"' . $woocommerce->plugin_url() . '/assets/images/ajax-loader.gif\" alt=\"Redirecting\" style=\"float:left; margin-right: 10px;\" />' . 'Thank you for your order. We are now redirecting you to '.$payg_title.' Payment Gateway to make payment.' . '",
+                overlayCSS:
+        {
+            background: "#fff",
+                opacity: 0.6
+    },
+    css: {
+        padding:        20,
+            textAlign:      "center",
+            color:          "#555",
+            border:         "3px solid #aaa",
+            backgroundColor:"#fff",
+            cursor:         "wait",
+            lineHeight:"32px"
+    }
+    });
+     window.location=\''.$order_create_response["PaymentProcessUrl"].'\';
 
-                                        });
-                                        </script> ';
+    });
+    </script> ';
+ }
+
                     }
 
             function get_pages($title = false, $indent = true) {
@@ -480,49 +486,7 @@ if (!function_exists('woocommerce_payg_init')) {
               
                 return $server_output;
             }
-            function process_refund( $order_id, $amount, $reason ){
-                 
-                 $order = new WC_Order($orderId); 
-                 $order_id =  $_GET['order_id']; 
-                 $order_data=  wc_get_order( $order_id);
-                 $order_meta_data=$order_data->get_meta('_payg_order_response');
-                 $order_meta_data=json_decode($order_meta_data,true);
-                 $post_array=array();
-                 $post_array['OrderKeyId']= $order_meta_data['OrderKeyId'];
-                 $post_array['MerchantKeyId']= $order_meta_data['OrderKeyId'];
-                 $post_array['PaymentTransactionId']= $order_meta_data['PaymentTransactionId'];
-                 $post_array['PaymentType']= $order_meta_data['PaymentType'];
-                 $post['Merchantkeyid']= $this->merchant_id; 
-                 $post['MerchantAuthenticationKey']=$this->authentication_key;
-                 $post['MerchantAuthenticationToken']=$this->authentication_token;
-                 $header_key = $post['MerchantAuthenticationKey'].":".$post['MerchantAuthenticationToken'].":M:".$post['Merchantkeyid'];
-                 $response_data=$this->postApi($header_key,$post_array,"https://paygapi.payg.in/payment/api/order/Update");
-                 add_post_meta( $order_id, '_payg_order_response', $response_data, true );
-                 $payg_order_response=json_decode($response_data,true);
-                 if(empty($transaction_id)){
-                     return false;
-                 }
-                 $data["ag_ref"]=$transaction_id;
-                 $data["refund_amount"]=$amount;
-                 $data["refund_reason"]=$reason; 
-                 $form_elements =  $this->initiateRefundProcess($data);
-                 $json_refund_response = $this->getRefundResponsecurl($server_refund_url, $form_elements);
-                 $refund_response=json_decode($json_refund_response,true);
-                 if($refund_response['res_code'] == "0000"){  
-                     $order->add_order_note( __( 'Refund Id: ' . $refund_response['refund_ref'], 'woocommerce' ) );
 
-                     return true;
-                 }else{
-                    $log = array(
-                        'Error' =>  $refund_response['error_details'],
-                    );
-        
-                    error_log(json_encode($log));
-                     return false;
-                 }
-                 //echo "<pre>";print_r($refund_response);return false;
-                exit;
-            }
         }
 
         /**
